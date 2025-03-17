@@ -13,7 +13,6 @@ volatile absolute_time_t echo_end;
 volatile bool fim_echo = false;
 volatile bool timeout_error = false;
 
-alarm_id_t timeout_alarm;
 
 
 
@@ -66,6 +65,7 @@ int main() {
     gpio_set_irq_enabled_with_callback(ECHO_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &echo_callback);
 
     bool rodando = false;
+    alarm_id_t timeout_alarm;
 
     printf("Digite 's' para iniciar ou 'n' para parar:\n");
 
