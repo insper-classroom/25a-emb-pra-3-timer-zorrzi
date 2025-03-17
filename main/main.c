@@ -15,7 +15,7 @@ volatile bool timeout_error = false;
 
 alarm_id_t timeout_alarm;
 
-bool rodando = false;
+
 
 const char* months[] = {"January", "February", "March", "April", "May", "June", 
                         "July", "August", "September", "October", "November", "December"};
@@ -32,7 +32,6 @@ void echo_callback(uint gpio, uint32_t events) {
     if (events & GPIO_IRQ_EDGE_FALL) {
         echo_end = get_absolute_time();
         fim_echo = true;
-        cancel_alarm(timeout_alarm);
     }
 }
 
@@ -41,7 +40,6 @@ void trigger_pulse() {
     sleep_us(10);
     gpio_put(TRIGGER_PIN, 0);
     timeout_error = false;
-    timeout_alarm = add_alarm_in_ms(30, alarm_timeout_callback, NULL, false);
 }
 
 int main() {
@@ -67,6 +65,8 @@ int main() {
     gpio_set_dir(ECHO_PIN, GPIO_IN);
     gpio_set_irq_enabled_with_callback(ECHO_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &echo_callback);
 
+    bool rodando = false;
+
     printf("Digite 's' para iniciar ou 'n' para parar:\n");
 
     while (true) {
@@ -82,12 +82,14 @@ int main() {
 
         if (rodando) {
             trigger_pulse();
+            timeout_alarm = add_alarm_in_ms(30, alarm_timeout_callback, NULL, false);
             sleep_ms(60);
 
             datetime_t t;
             rtc_get_datetime(&t);
 
             if (fim_echo) {
+                cancel_alarm(timeout_alarm);
                 int64_t dt_us = absolute_time_diff_us(echo_start, echo_end);
                 float distancia_cm = (dt_us * 0.0343f) / 2.0f;
 
